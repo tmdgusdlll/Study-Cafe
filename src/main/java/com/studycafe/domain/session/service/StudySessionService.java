@@ -1,5 +1,7 @@
 package com.studycafe.domain.session.service;
 
+import com.studycafe.domain.point.entity.PointTransactionType;
+import com.studycafe.domain.point.service.PointService;
 import com.studycafe.domain.session.dto.SessionEndResponse;
 import com.studycafe.domain.session.dto.SessionStartResponse;
 import com.studycafe.domain.session.entity.SessionStatus;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StudySessionService {
 
     private final StudySessionRepository studySessionRepository;
+    private final PointService pointService;
 
     public SessionStartResponse start(Long memberId) {
         studySessionRepository.findByMemberIdAndStatus(memberId, SessionStatus.IN_PROGRESS)
@@ -33,7 +36,12 @@ public class StudySessionService {
         long durationMinutes = session.end();
         studySessionRepository.save(session);
 
-        // 포인트 적립은 Task 6에서 PointService 주입 후 추가
-        return SessionEndResponse.of(session, durationMinutes, 0L);
+        long earnedPoints = 0;
+        if (durationMinutes >= 1) {
+            earnedPoints = durationMinutes * 10;
+            pointService.earn(memberId, earnedPoints, PointTransactionType.SESSION_EARN);
+        }
+
+        return SessionEndResponse.of(session, durationMinutes, earnedPoints);
     }
 }
