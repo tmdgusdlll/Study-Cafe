@@ -1,5 +1,7 @@
 package com.studycafe.domain.point.entity;
 
+import com.studycafe.global.exception.CustomException;
+import com.studycafe.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,5 +35,13 @@ public class UserPoint {
 
     public void earn(long amount) {
         this.balance += amount;
+    }
+
+    // 잔액 차감. 잔액이 부족하면 예외를 던진다.
+    public void spend(long amount) {
+        if (this.balance < amount) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_POINTS);
+        }
+        this.balance -= amount;
     }
 }
