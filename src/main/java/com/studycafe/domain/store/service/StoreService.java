@@ -10,6 +10,7 @@ import com.studycafe.domain.store.repository.UserItemRepository;
 import com.studycafe.global.exception.CustomException;
 import com.studycafe.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +53,11 @@ public class StoreService {
         }
 
         pointService.spend(memberId, item.getPrice(), PointTransactionType.ITEM_PURCHASE);
-        userItemRepository.save(UserItem.of(memberId, itemId));
+        try {
+            userItemRepository.saveAndFlush(UserItem.of(memberId, itemId));
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청으로 앱 레벨 검사를 함께 통과한 경우 — DB 유니크 제약이 최종 방어선
+            throw new CustomException(ErrorCode.ITEM_ALREADY_OWNED);
+        }
     }
 }
