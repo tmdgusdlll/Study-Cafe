@@ -2,6 +2,8 @@ package com.studycafe.support;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest
@@ -15,5 +17,11 @@ public abstract class IntegrationTestSupport {
 
     static {
         POSTGRES.start();
+    }
+
+    // 테스트는 .env 없이도 자립해야 하므로 고정된 테스트용 secret을 주입한다.
+    @DynamicPropertySource
+    static void jwtProperties(DynamicPropertyRegistry registry) {
+        registry.add("jwt.secret", () -> "test-jwt-secret-key-for-integration-tests-only-0123456789");
     }
 }

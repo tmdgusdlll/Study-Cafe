@@ -31,6 +31,10 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
+    // .env 로드 (spring-dotenv는 Boot 4와 호환되지 않아 dotenv-java를 직접 사용,
+    // DotenvEnvironmentPostProcessor에서 로드한다)
+    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
     // DB
     runtimeOnly 'org.postgresql:postgresql'
 

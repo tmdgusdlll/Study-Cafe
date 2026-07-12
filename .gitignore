@@ -40,4 +40,14 @@ out/
 .claude
 CLAUDE.md
 
+### macOS ###
+.DS_Store
+
+### env ###
+.env
+
+### 환경별 설정 (git 밖에서 관리) ###
+application-local.yaml
+application-prod.yaml
+
 
