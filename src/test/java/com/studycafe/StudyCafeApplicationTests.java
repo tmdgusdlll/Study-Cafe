@@ -1,10 +1,9 @@
 package com.studycafe;
 
+import com.studycafe.support.IntegrationTestSupport;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class StudyCafeApplicationTests {
+class StudyCafeApplicationTests extends IntegrationTestSupport {
 
     @Test
     void contextLoads() {
