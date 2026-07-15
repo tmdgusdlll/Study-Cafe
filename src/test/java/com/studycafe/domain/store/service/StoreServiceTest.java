@@ -4,6 +4,7 @@ import com.studycafe.domain.point.entity.PointTransactionType;
 import com.studycafe.domain.point.repository.PointHistoryRepository;
 import com.studycafe.domain.point.repository.UserPointRepository;
 import com.studycafe.domain.point.service.PointService;
+import com.studycafe.domain.store.dto.StoreItemResponse;
 import com.studycafe.domain.store.entity.ItemCategory;
 import com.studycafe.domain.store.entity.StoreItem;
 import com.studycafe.domain.store.repository.StoreItemRepository;
@@ -14,6 +15,8 @@ import com.studycafe.support.IntegrationTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -90,5 +93,40 @@ class StoreServiceTest extends IntegrationTestSupport {
         assertThatThrownBy(() -> storeService.purchase(4L, 999L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.ITEM_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void 전체_아이템_목록_조회() {
+        StoreItem itemA = saveItem(500L);
+        StoreItem itemB = storeItemRepository.save(
+                StoreItem.of("모던 카페", "깔끔한 모던 분위기", ItemCategory.BACKGROUND, 700L, "/bg/modern.png"));
+
+        List<StoreItemResponse> items = storeService.getItems();
+
+        assertThat(items).hasSize(2);
+        assertThat(items).extracting(StoreItemResponse::id)
+                .containsExactlyInAnyOrder(itemA.getId(), itemB.getId());
+        assertThat(items).extracting(StoreItemResponse::name)
+                .containsExactlyInAnyOrder(itemA.getName(), itemB.getName());
+    }
+
+    @Test
+    void 내_보유_아이템만_조회() {
+        StoreItem itemA = saveItem(500L);
+        StoreItem itemB = storeItemRepository.save(
+                StoreItem.of("모던 카페", "깔끔한 모던 분위기", ItemCategory.BACKGROUND, 700L, "/bg/modern.png"));
+        pointService.earn(10L, 1000L, PointTransactionType.SESSION_EARN);
+        storeService.purchase(10L, itemA.getId());
+
+        List<StoreItemResponse> myItems = storeService.getMyItems(10L);
+
+        assertThat(myItems).hasSize(1);
+        assertThat(myItems.get(0).id()).isEqualTo(itemA.getId());
+        assertThat(myItems.get(0).name()).isEqualTo(itemA.getName());
+    }
+
+    @Test
+    void 보유_아이템_없으면_빈_목록() {
+        assertThat(storeService.getMyItems(999L)).isEmpty();
     }
 }
