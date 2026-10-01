@@ -24,4 +24,9 @@ public class ApiResponse<T> {
     public static ApiResponse<Void> fail(ErrorCode errorCode) {
         return new ApiResponse<>(false, errorCode.name(), null, errorCode.getMessage());
     }
+
+    // 입력 검증 실패처럼 상황별 메시지를 내려줄 때 사용
+    public static ApiResponse<Void> fail(ErrorCode errorCode, String message) {
+        return new ApiResponse<>(false, errorCode.name(), null, message);
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -118,6 +119,57 @@ class MemberControllerTest extends IntegrationTestSupport {
                                 new TokenRefreshRequest("invalid-token"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("REFRESH_TOKEN_INVALID"));
+    }
+
+    @Test
+    void 액세스_토큰으로_내_정보_조회() throws Exception {
+        memberService_signUp(new SignUpRequest("me@test.com", "password123!", "내정보테스터"));
+
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/members/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new LoginRequest("me@test.com", "password123!"))))
+                .andReturn();
+
+        String accessToken = objectMapper.readTree(loginResult.getResponse().getContentAsString())
+                .path("data").path("accessToken").asText();
+
+        mockMvc.perform(get("/api/v1/members/me")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("me@test.com"))
+                .andExpect(jsonPath("$.data.nickname").value("내정보테스터"));
+    }
+
+    @Test
+    void 토큰_없이_내_정보_조회_실패() throws Exception {
+        mockMvc.perform(get("/api/v1/members/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void 잘못된_이메일_형식으로_회원가입_실패() throws Exception {
+        SignUpRequest request = new SignUpRequest("not-an-email", "password123!", "테스터");
+
+        mockMvc.perform(post("/api/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"))
+                .andExpect(jsonPath("$.message").value("이메일 형식이 올바르지 않습니다"));
+    }
+
+    @Test
+    void 닉네임이_너무_짧으면_회원가입_실패() throws Exception {
+        SignUpRequest request = new SignUpRequest("short@test.com", "password123!", "a");
+
+        mockMvc.perform(post("/api/v1/members/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_INPUT"))
+                .andExpect(jsonPath("$.message").value("닉네임은 2~10자여야 합니다"));
     }
 
     private void memberService_signUp(SignUpRequest request) throws Exception {

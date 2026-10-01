@@ -64,4 +64,11 @@ public class MemberService {
     public void logout(Long memberId) {
         refreshTokenRepository.deleteByMemberId(memberId);
     }
+
+    @Transactional(readOnly = true)
+    public MemberInfoResponse getMyInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
+        return new MemberInfoResponse(member.getId(), member.getEmail(), member.getNickname());
+    }
 }
