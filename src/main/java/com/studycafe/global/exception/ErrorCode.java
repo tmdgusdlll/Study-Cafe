@@ -29,7 +29,11 @@ public enum ErrorCode {
 
     // 상점
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "아이템을 찾을 수 없습니다"),
-    ITEM_ALREADY_OWNED(HttpStatus.CONFLICT, "이미 보유한 아이템입니다");
+    ITEM_ALREADY_OWNED(HttpStatus.CONFLICT, "이미 보유한 아이템입니다"),
+
+    // 카페 좌석
+    INVALID_SEAT(HttpStatus.BAD_REQUEST, "존재하지 않는 자리입니다"),
+    SEAT_TAKEN(HttpStatus.CONFLICT, "이미 다른 분이 앉은 자리입니다");
 
     private final HttpStatus status;
     private final String message;
