@@ -12,3 +12,7 @@ jwt:
   secret: ${JWT_SECRET}                 # 기본값 제거 — 미설정 시 fail-fast
   expiration-ms: 86400000               # 액세스 토큰: 24시간
   refresh-expiration-ms: 1209600000     # 리프레시 토큰: 14일
+
+cafe:
+  seat:
+    grace-period: 30s                   # 연결이 끊긴 뒤 자리를 잡아두는 시간
